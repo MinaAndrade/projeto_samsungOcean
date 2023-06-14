@@ -3,7 +3,7 @@ const express = require("express");
 
 // Connection URL
 // const url = 'mongodb://127.0.0.1:27017';
-const url = 'mongodb+srv://admin:bWbFHDXCzf219B82@cluster0.ndeddky.mongodb.net';
+const url = "mongodb+srv://admin:bWbFHDXCzf2I9B82@cluster0.ndeddky.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(url);
 
 // Database Name
