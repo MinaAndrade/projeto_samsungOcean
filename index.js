@@ -1,21 +1,20 @@
-/*const express = require('express');
-const app = express();
-
-const port = 3000;
-
-app.get('/', function (req, res) {
-  res.send('Hello World');
-});
-
-app.get('/oi', (req, res) => {
-    res.send('Olá, mundo!');
-});
-
-app.listen(port, () => {
-  console.info(`Está disponível em http://localhost:${port}`);
-});*/
-
+const { MongoClient, ObjectId } = require('mongodb');
 const express = require("express");
+
+// Connection URL
+const url = 'mongodb://127.0.0.1:27017';
+const client = new MongoClient(url);
+
+// Database Name
+const dbName = 'jornada_backend_2023';
+
+async function main() {
+  // Use connect method to connect to the server
+await client.connect();
+console.log("Connected successfully to server");
+const db = client.db(dbName);
+const collection = db.collection("herois");
+
 const app = express();
 
 // Indicamos que o Express deve considerar o Body
@@ -35,47 +34,66 @@ const herois = ["Mulher Maravilha", "Capitã Marvel", "Homem de Ferro"];
 //              0                    1                2
 
 // Read All - [GET] /herois
-app.get("/herois", function (req, res) {
-  res.send(herois.filter(Boolean));
+app.get("/herois", async function (req, res) {
+  const documentos = await collection.find().toArray();
+  res.send(documentos);
 });
 
 // Create - [POST] /herois
-app.post("/herois", function (req, res) {
+app.post("/herois", async function (req, res) {
   // console.log(req.body, typeof req.body);
 
-  const nome = req.body.nome;
+  const item = req.body;
   // console.log(nome, typeof nome);
 
-  herois.push(nome);
+  //herois.push(nome);
 
-  res.send("Item criado com sucesso!");
+  await collection.insertOne(item)
+
+  res.send(item);
 });
 
 // Read By Id - [GET] /herois/:id
-app.get("/herois/:id", function (req, res) {
+app.get("/herois/:id", async function (req, res) {
   const id = req.params.id;
 
-  const item = herois[id - 1];
+  //const item = herois[id - 1];
+
+  const item = await collection.findOne({
+    _id: new ObjectId(id), 
+  })
 
   res.send(item);
 });
 
 // Update - [PUT] /herois/:id
-app.put("/herois/:id", function (req, res) {
+app.put("/herois/:id", async function (req, res) {
   const id = req.params.id;
 
-  const novoNome = req.body.nome;
+ // const novoNome = req.body.nome;
 
-  herois[id - 1] = novoNome;
+  //herois[id - 1] = novoNome;
 
-  res.send("Item atualizado com sucesso!");
+  const item = req.body;
+
+  await collection.updateOne(
+    { _id: new ObjectId(id)},
+    {
+      $set: item,
+    }
+  );
+
+  res.send(item);
 });
 
 // Delete - [DELETE] /herois/:id
-app.delete("/herois/:id", function (req, res) {
+app.delete("/herois/:id", async function (req, res) {
   const id = req.params.id;
 
-  delete herois[id - 1];
+  //delete herois[id - 1];
+  await collection.deleteOne({
+    _id: new ObjectId(id),
+  });
 
   res.send("Item removido com sucesso!");
 });
@@ -83,3 +101,8 @@ app.delete("/herois/:id", function (req, res) {
 app.listen(3000, function () {
   console.log("Aplicando rodando em http://localhost:3000");
 });
+}
+
+main();
+ // .catch(console.error)
+ // .finally(() => client.close());
